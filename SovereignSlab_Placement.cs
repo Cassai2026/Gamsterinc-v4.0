@@ -1,6 +1,7 @@
 using UnityEngine;
-using SovereignMesh.Gamification; // Connecting to the CassAI Ledger
-using SovereignMesh.Avatars;      // Connecting to the Kong VR Manifestation
+using System;
+using System.Linq;
+using System.Reflection;
 
 // PROJECT: ETERNIUS 4D KONG EDITION x GAMESTERINC
 // MODULE: SOVEREIGN_SLAB_FOUNDATION
@@ -36,6 +37,12 @@ public class SovereignSlab_Placement : MonoBehaviour
 
     void AuditFloatingDeck()
     {
+        if (hobbitNodeAnchor == null)
+        {
+            Debug.LogWarning("SovereignSlab_Placement: Missing hobbitNodeAnchor reference.");
+            return;
+        }
+
         // Calculate the physical distance and alignment over the Hobbit Node
         float distance = Vector3.Distance(transform.position, hobbitNodeAnchor.position);
 
@@ -55,7 +62,15 @@ public class SovereignSlab_Placement : MonoBehaviour
         transform.rotation = hobbitNodeAnchor.rotation;
 
         // Disable physics to finalize the 1-foot deck structure
-        GetComponent<Rigidbody>().isKinematic = true; 
+        Rigidbody rigidbodyComponent = GetComponent<Rigidbody>();
+        if (rigidbodyComponent != null)
+        {
+            rigidbodyComponent.isKinematic = true;
+        }
+        else
+        {
+            Debug.LogWarning("SovereignSlab_Placement: No Rigidbody found; slab was locked without physics handoff.");
+        }
 
         TriggerKongValidation();
     }
@@ -74,12 +89,60 @@ public class SovereignSlab_Placement : MonoBehaviour
         if (kongVoiceSynth != null)
         {
             // Translates the Gemini text into a deep, warm, rumbling voice
-            kongVoiceSynth.PlayOneShot(kongVoiceSynth.clip); 
+            if (kongVoiceSynth.clip != null)
+            {
+                kongVoiceSynth.PlayOneShot(kongVoiceSynth.clip);
+            }
+            else
+            {
+                Debug.LogWarning("SovereignSlab_Placement: kongVoiceSynth has no AudioClip assigned.");
+            }
         }
         
         // Mint the Real World Learning (RWL) Credits to the student's Sovereign Vault
-        SovereignLedger.MintToGhostID(Player.CurrentGhostID, rwlCreditValue, "SOVEREIGN_SLAB_01");
+        TryMintRwlCredits(rwlCreditValue);
         
         Debug.Log($">> REWARD ISSUED: {rwlCreditValue} RWL Credits. The Gen Alpha Titans are building the future.");
+    }
+
+    void TryMintRwlCredits(int creditAmount)
+    {
+        Type[] allTypes = AppDomain.CurrentDomain.GetAssemblies().SelectMany(GetSafeTypes).ToArray();
+        Type ledgerType = allTypes.FirstOrDefault(t => t.FullName == "SovereignMesh.Gamification.SovereignLedger");
+        Type playerType = allTypes.FirstOrDefault(t => t.FullName == "SovereignMesh.Avatars.Player");
+
+        if (ledgerType == null || playerType == null)
+        {
+            Debug.LogWarning("SovereignSlab_Placement: SovereignMesh SDK not found; skipping credit mint.");
+            return;
+        }
+
+        MethodInfo mintMethod = ledgerType.GetMethod("MintToGhostID", BindingFlags.Public | BindingFlags.Static);
+        PropertyInfo ghostIdProperty = playerType.GetProperty("CurrentGhostID", BindingFlags.Public | BindingFlags.Static);
+
+        if (mintMethod == null || ghostIdProperty == null)
+        {
+            Debug.LogWarning("SovereignSlab_Placement: SovereignMesh API surface not compatible; skipping credit mint.");
+            return;
+        }
+
+        object ghostId = ghostIdProperty.GetValue(null);
+        mintMethod.Invoke(null, new object[] { ghostId, creditAmount, "SOVEREIGN_SLAB_01" });
+    }
+
+    static Type[] GetSafeTypes(Assembly assembly)
+    {
+        try
+        {
+            return assembly.GetTypes();
+        }
+        catch (ReflectionTypeLoadException ex)
+        {
+            return ex.Types.Where(t => t != null).ToArray();
+        }
+        catch
+        {
+            return Array.Empty<Type>();
+        }
     }
 }

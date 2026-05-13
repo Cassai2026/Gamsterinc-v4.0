@@ -34,7 +34,14 @@ public class AnimusController : MonoBehaviour
         cognitiveLoad = Mathf.Clamp(cognitiveLoad, 0, 100);
         
         // Pass the damage up to the Macro Overseer
-        SovereignOverseer.Instance.ApplySlothPenalty(0, 0, stressAmount * 0.2f);
+        if (SovereignOverseer.Instance != null)
+        {
+            SovereignOverseer.Instance.ApplySlothPenalty(0, 0, stressAmount * 0.2f);
+        }
+        else
+        {
+            Debug.LogWarning("AnimusController: SovereignOverseer.Instance is null; skipping sloth penalty propagation.");
+        }
     }
 
     void RegulateSomaticState()

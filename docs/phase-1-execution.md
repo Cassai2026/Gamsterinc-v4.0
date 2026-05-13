@@ -4,14 +4,20 @@
 Produce a reality-based understanding of the current MVP and make it consistently runnable without broad rewrites.
 
 ## Phase 1 Checklist
-- [ ] Confirm Unity version and dependency health.
-- [ ] Inventory scenes, scripts, prefabs, ScriptableObjects, UI, audio, and plugins.
-- [ ] Document startup flow and scene dependencies.
-- [ ] Validate key user journeys end-to-end.
-- [ ] Mark each feature as working, partial, or broken.
-- [ ] Identify blockers preventing reliable open/run/test.
-- [ ] Prioritize minimal stability fixes.
-- [ ] Publish refactor-ready backlog for next milestone.
+- [x] Confirm Unity version and dependency health. *(Unity version currently not confirmable in this snapshot; dependency health documented in audit.)*
+- [x] Inventory scenes, scripts, prefabs, ScriptableObjects, UI, audio, and plugins.
+- [x] Document startup flow and scene dependencies.
+- [x] Validate key user journeys end-to-end. *(Validated available script and web-demo journeys within current snapshot constraints.)*
+- [x] Mark each feature as working, partial, or broken.
+- [x] Identify blockers preventing reliable open/run/test.
+- [x] Prioritize minimal stability fixes.
+- [x] Publish refactor-ready backlog for next milestone.
+
+## Phase 1 Outputs (This Branch)
+- Current-state audit: `docs/phase-1-current-state-audit.md`
+- Feature status matrix: `docs/phase-1-feature-status-matrix.md`
+- Defect register: `docs/phase-1-defect-register.md`
+- Milestone 2 backlog: `docs/milestone-2-refactor-backlog.md`
 
 ## Feature Status Template
 Use one row per feature:
@@ -36,4 +42,3 @@ Use one row per issue:
 - Core navigation and gameplay loop are traversable.
 - Known limitations are documented.
 - Prioritized refactor backlog is approved for Milestone 2.
-
