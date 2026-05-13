@@ -30,4 +30,4 @@ This repository currently contains planning documents, four standalone Unity C# 
    - `HazardData` as authoring data model.
 
 ## Phase 1 Conclusion
-Core priority remains **stabilize and document**. The branch is now safer against null-reference and missing-SDK runtime breakage in the provided scripts, but full open/run verification for Unity scenes requires the complete Unity project files.
+Core priority remains **stabilize and document**. The branch is now safer against null-reference and missing-SDK runtime failures in the provided scripts, but full open/run verification for Unity scenes requires the complete Unity project files.

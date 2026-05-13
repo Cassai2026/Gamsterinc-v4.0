@@ -9,6 +9,10 @@ using System.Reflection;
 
 public class SovereignSlab_Placement : MonoBehaviour
 {
+    static bool sovereignMeshLookupAttempted = false;
+    static MethodInfo cachedMintMethod;
+    static PropertyInfo cachedGhostIdProperty;
+
     [Header("Sovereign Deck Settings")]
     [Tooltip("The exact anchor point above the Hobbit Node for the 1-foot slab.")]
     public Transform hobbitNodeAnchor; 
@@ -107,6 +111,26 @@ public class SovereignSlab_Placement : MonoBehaviour
 
     void TryMintRwlCredits(int creditAmount)
     {
+        EnsureSovereignMeshBindings();
+        if (cachedMintMethod == null || cachedGhostIdProperty == null)
+        {
+            Debug.LogWarning("SovereignSlab_Placement: SovereignMesh API surface not compatible; skipping credit mint.");
+            return;
+        }
+
+        object ghostId = cachedGhostIdProperty.GetValue(null);
+        cachedMintMethod.Invoke(null, new object[] { ghostId, creditAmount, "SOVEREIGN_SLAB_01" });
+    }
+
+    static void EnsureSovereignMeshBindings()
+    {
+        if (sovereignMeshLookupAttempted)
+        {
+            return;
+        }
+
+        sovereignMeshLookupAttempted = true;
+
         Type[] allTypes = AppDomain.CurrentDomain.GetAssemblies().SelectMany(GetSafeTypes).ToArray();
         Type ledgerType = allTypes.FirstOrDefault(t => t.FullName == "SovereignMesh.Gamification.SovereignLedger");
         Type playerType = allTypes.FirstOrDefault(t => t.FullName == "SovereignMesh.Avatars.Player");
@@ -117,17 +141,8 @@ public class SovereignSlab_Placement : MonoBehaviour
             return;
         }
 
-        MethodInfo mintMethod = ledgerType.GetMethod("MintToGhostID", BindingFlags.Public | BindingFlags.Static);
-        PropertyInfo ghostIdProperty = playerType.GetProperty("CurrentGhostID", BindingFlags.Public | BindingFlags.Static);
-
-        if (mintMethod == null || ghostIdProperty == null)
-        {
-            Debug.LogWarning("SovereignSlab_Placement: SovereignMesh API surface not compatible; skipping credit mint.");
-            return;
-        }
-
-        object ghostId = ghostIdProperty.GetValue(null);
-        mintMethod.Invoke(null, new object[] { ghostId, creditAmount, "SOVEREIGN_SLAB_01" });
+        cachedMintMethod = ledgerType.GetMethod("MintToGhostID", BindingFlags.Public | BindingFlags.Static);
+        cachedGhostIdProperty = playerType.GetProperty("CurrentGhostID", BindingFlags.Public | BindingFlags.Static);
     }
 
     static Type[] GetSafeTypes(Assembly assembly)
